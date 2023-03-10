@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar  4 17:34:03 2022
+
+@author: giancarlo
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import monashspa.PHS2061 as spa
+
+data = [
+    #Length [m],	u(Length) [m],Period 1 [s],Period 2 [s],Period 3 [s]
+    [0.300, 	0.003, 	1.2, 	1.0, 	1.1],
+    [0.600, 	0.003, 	1.4, 	1.5, 	1.7],
+    [0.900, 	0.003, 	2.0, 	2.1, 	1.9],
+    [1.200, 	0.003, 	2.4, 	2.1, 	2.3],
+    [1.500, 	0.003, 	2.3, 	2.6, 	2.5],
+    [1.800, 	0.003, 	2.6, 	2.5, 	2.8]
+        ]
+
+data = np.array(data)
+length = data[:,0]
+u_length = data[:,1]
+
+period_data = data[:,2:]
+
+avg_period = np.mean(period_data, axis=1)
+
+u_avg_period = np.std(period_data, axis=1, ddof=1)/np.sqrt(len(period_data[1]))
+
+plt.figure(1)
+plt.title("Figure 1: Non-linear plot of pendulum data")
+plt.errorbar(length, avg_period, xerr=u_length, yerr=u_avg_period, marker="o", linestyle="None")
+plt.xlim([0,2])
+plt.ylim([0,3])
+plt.xlabel("Length (m)")
+plt.ylabel("Average period (s)")
+plt.show()
+
+avg_period_sq = avg_period**2
+u_avg_period_sq = 2*avg_period*u_avg_period
+
+fit_result = spa.linear_fit(length, avg_period_sq, u_y=u_avg_period_sq)
+
+y_fit = fit_result.best_fit
+u_y_fit = fit_result.eval_uncertainty(sigma=2)
+
+plt.figure(2)
+plt.title("Figure 2: linearised plot of pendulum data")
+plt.errorbar(length, avg_period_sq, xerr=u_length, yerr=u_avg_period_sq, marker="o", linestyle="None")
+plt.xlim([0,2])
+plt.ylim([0,9])
+plt.xlabel("Length (m)")
+plt.ylabel("Average period squared($s^2$)")
+plt.show()
